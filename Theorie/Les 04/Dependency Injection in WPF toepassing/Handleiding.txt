@@ -1,0 +1,55 @@
+Handleiding Dependency injection bij WPF toepassingen.
+
+
+Probleem: dependency (= logische laag, datalaag...) injecteren via constructor van MainWindow dat
+          automatisch via een default constructor aangemaakt wordt.
+
+Oplossing:
+
+1.	in App.Xaml bij de application de parameter ' StartupUri="MainWindow.xaml"' schrappen.
+
+				<Application x:Class="WpfDependencyInjectionDemo.App"
+							 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+							 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+							 xmlns:local="clr-namespace:WpfDependencyInjectionDemo"
+							>
+					<Application.Resources>
+         
+					</Application.Resources>
+				</Application>
+
+2. in MainWindow.xaml.cs de constructor aanpassen, zodat een parameter van het juiste Interface
+   type verwacht (en opgeslagen) wordt.
+
+			   public partial class MainWindow : Window
+				{
+					private readonly IDemoLayer demoLayer;
+
+					public string DemoText => demoLayer.Demotext;
+
+					public MainWindow(IDemoLayer demoLayer)
+					{
+						DataContext = this;
+						this.demoLayer = demoLayer;
+						InitializeComponent();
+					}
+				}
+
+
+
+
+2. In App.xamls.cs een override doen van de 'OnstartUp' event-handler:
+
+		- de base:Startup() schrappen!
+		- het MainWindow aanmaken met de juiste parameter en dan tonen
+
+
+				public partial class App : Application
+				{
+					protected override void OnStartup(StartupEventArgs e)
+					{
+						//base.OnStartup(e);
+						IDemoLayer demoLayer = new DemoLayerImplementation();
+						new MainWindow(demoLayer).Show();
+					}
+				}
